@@ -1,0 +1,16 @@
+[project]
+name = "mygames"
+version = "0.1.0"
+description = "One database of the games you own across PC stores, telling you where to play them."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+mygames = "mygames.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
