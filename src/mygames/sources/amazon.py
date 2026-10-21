@@ -8,6 +8,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import urllib.parse
 import webbrowser
 from pathlib import Path
@@ -39,36 +40,47 @@ def _nile() -> tuple[list[str], Path | None]:
 
 
 def _config_dir() -> Path:
-    # Mirrors nile's constants.CONFIG_PATH (platformdirs' roaming config dir on macOS).
-    if path := os.environ.get("NILE_CONFIG_PATH"):
+    # Mirrors nile's constants.CONFIG_PATH: env overrides, then platformdirs' roaming config dir.
+    if path := os.environ.get("NILE_CONFIG_PATH") or os.environ.get("XDG_CONFIG_HOME"):
         return Path(path) / "nile"
-    if path := os.environ.get("XDG_CONFIG_HOME"):
-        return Path(path) / "nile"
-    return Path.home() / "Library" / "Application Support" / "nile"
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "nile"
+    if sys.platform == "win32":
+        return Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")) / "nile"
+    return Path.home() / ".config" / "nile"
 
 
 def is_configured() -> bool:
     return (_config_dir() / "current_user.json").exists()
 
 
+def _read_redirect() -> str:
+    # macOS terminals silently drop pasted lines over 1024 bytes, Enter included, and
+    # Amazon's redirect URL is longer, so on macOS read it from the clipboard instead.
+    # Linux (4096) and Windows terminals take the paste fine.
+    if sys.platform == "darwin":
+        print("then copy the full URL from the address bar (Cmd+L, Cmd+C). Don't paste it here.\n")
+        input("Press Enter here once the URL is copied... ")
+        return subprocess.run(["pbpaste"], capture_output=True, text=True).stdout.strip()
+    print("then copy the full URL from the address bar and paste it here.\n")
+    return input("Redirect URL: ").strip()
+
+
 def login() -> None:
-    # Not `nile auth --login`: it reads the redirect URL with input(), and macOS terminals
-    # silently drop pasted lines over 1024 bytes, Enter included, so it hangs forever.
-    # Instead take nile's login secrets as JSON and read the redirect from the clipboard.
+    # Not `nile auth --login`, whose plain input() prompt hangs on macOS (see _read_redirect).
+    # Instead take nile's login secrets as JSON and finish with `nile register`.
     if is_configured():
         raise SystemExit("Already logged in to Amazon.")
     data = json.loads(_run("auth", "--login", "--non-interactive"))
     print("Log in to Amazon in the browser window. You will end up on amazon.com;")
-    print("then copy the full URL from the address bar (Cmd+L, Cmd+C).\n")
     webbrowser.open(data["url"])
-    input("Press Enter here once the URL is copied... ")
-    redirect = subprocess.run(["pbpaste"], capture_output=True, text=True).stdout.strip()
+    redirect = _read_redirect()
     query = urllib.parse.parse_qs(urllib.parse.urlparse(redirect).query)
     code = query.get("openid.oa2.authorization_code", [None])[0]
     if not code:
         raise SystemExit(
-            "The clipboard doesn't hold the redirect URL (no openid.oa2.authorization_code in it).\n"
-            f"Clipboard starts with: {redirect[:80]!r}\nRun `mygames login amazon` again."
+            "That isn't the redirect URL (no openid.oa2.authorization_code in it).\n"
+            f"Got: {redirect[:80]!r}\nRun `mygames login amazon` again."
         )
     _run("register", "--code", code, "--client-id", data["client_id"],
          "--code-verifier", data["code_verifier"], "--serial", data["serial"])

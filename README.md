@@ -36,8 +36,8 @@ break if a store changes something on its side.
 
 ## Requirements
 
-- macOS (the Amazon login reads from the clipboard with `pbpaste`; everything else is
-  plain Python and should work elsewhere, but is only tested on macOS)
+- macOS, Linux or Windows (day-to-day use is tested on macOS; Linux and Windows are
+  covered by the test suite but haven't had a real run yet)
 - [uv](https://docs.astral.sh/uv/) (it installs Python 3.11+ for you if needed)
 - `git` (only for Amazon)
 
@@ -98,12 +98,15 @@ mygames login amazon
 ```
 
 1. A browser window opens. Log in to Amazon.
-2. When you end up on amazon.com, **copy** the full URL from the address bar
-   (<kbd>Cmd</kbd>+<kbd>L</kbd>, <kbd>Cmd</kbd>+<kbd>C</kbd>). **Don't paste it** into the terminal.
-3. Switch back to the terminal and press <kbd>Enter</kbd>. `mygames` reads the URL from your clipboard.
+2. When you end up on amazon.com, copy the full URL from the address bar.
+3. Back in the terminal:
+   - **macOS:** **don't paste it.** Just press <kbd>Enter</kbd>, and `mygames` reads
+     the URL from your clipboard.
+   - **Linux / Windows:** paste it and press <kbd>Enter</kbd>.
 
-The URL comes from the clipboard because macOS terminals drop pasted lines longer
-than 1024 characters, and Amazon's redirect URL is longer than that.
+macOS is different because its terminals drop pasted lines longer than 1024
+characters (Enter included), and Amazon's redirect URL is longer than that. Linux and
+Windows terminals accept much longer lines.
 
 On first use, `mygames` downloads nile into `~/.config/mygames/tools/`. It is pinned
 to a fixed release, because nile can't be installed as a regular Python package.
@@ -254,8 +257,9 @@ Everything is stored in `~/.config/mygames/`. Set `MYGAMES_HOME` to use another 
 | `aliases.toml` | Your matching fixes |
 | `tools/` | Downloaded copy of nile (Amazon) |
 
-legendary and nile keep their own logins in their usual folders
-(`~/.config/legendary/` and `~/Library/Application Support/nile/`).
+legendary and nile keep their own logins in their usual folders: legendary in
+`~/.config/legendary/`, and nile in `~/Library/Application Support/nile/` (macOS),
+`~/.config/nile/` (Linux) or `%APPDATA%\nile\` (Windows).
 
 Nothing in the project folder contains your credentials or library.
 
@@ -275,8 +279,8 @@ sqlite3 ~/.config/mygames/mygames.db \
 | `steam: FAILED: Steam returned no games` | Set Steam **Game details** to **Public** (see [Steam](#steam)). |
 | `steam: FAILED: HTTP Error 401/403` | Wrong or revoked API key. Run `mygames login steam` again. |
 | `gog: FAILED: …` after a long break | The saved GOG login expired. Run `mygames login gog` again. |
-| Amazon login hangs after pasting the URL | Don't paste. Copy the URL and press Enter (see [Amazon](#amazon-games--prime-gaming)). |
-| `The clipboard doesn't hold the redirect URL` | You copied the wrong page. Copy the amazon.com URL you were redirected to after logging in, then run `mygames login amazon` again. |
+| Amazon login hangs after pasting the URL (macOS) | Don't paste. Copy the URL and press Enter (see [Amazon](#amazon-games--prime-gaming)). |
+| `That isn't the redirect URL` | You copied the wrong page. Copy the amazon.com URL you were redirected to after logging in, then run `mygames login amazon` again. |
 | `<store>: skipped (not logged in …)` | Run `mygames login <store>`. |
 | The same game shows up twice | Add an `[alias]` entry (see [Fixing mismatches](#fixing-mismatches-aliasestoml)). |
 | A game from an itch.io bundle is missing | See [Known limitations](#known-limitations). |
