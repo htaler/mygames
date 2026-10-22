@@ -1,4 +1,4 @@
-# mygames
+# Where to play?
 
 **Where do I own this game, and where should I play it?**
 
