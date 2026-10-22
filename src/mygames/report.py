@@ -89,9 +89,11 @@ document.getElementById("stats").innerHTML =
 
 // One checkbox per store, in preference order; a game shows if owned on any ticked store.
 const PLATFORMS = __PLATFORMS__;
+// itch.io is mostly jam games and prototypes, so it starts unticked.
+const UNTICKED = ["itch"];
 const services = document.getElementById("services");
 services.innerHTML =
-  PLATFORMS.map(p => `<label><input type="checkbox" value="${esc(p)}" checked> ` +
+  PLATFORMS.map(p => `<label><input type="checkbox" value="${esc(p)}"${UNTICKED.includes(p) ? "" : " checked"}> ` +
     `<span class="badge ${esc(p)}">${esc(p)}</span> ${counts[p]}</label>`).join("") +
   `<button type="button" data-all="1">all</button><button type="button" data-all="">none</button>` +
   `<span class="shown" id="shown"></span>`;

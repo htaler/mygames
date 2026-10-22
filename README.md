@@ -165,7 +165,8 @@ It has:
 
 - a search box
 - a checkbox per store (plus *all* / *none*). A game shows if you own it on any
-  ticked store.
+  ticked store. itch.io starts unticked, because its library is mostly jam games and
+  prototypes; games you also own elsewhere still show.
 - an **Only owned on 2+ platforms** filter, with duplicates highlighted
 - a "play on" column and store badges, with the preferred store in bold
 
